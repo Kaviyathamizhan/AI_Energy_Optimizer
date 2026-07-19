@@ -14,14 +14,13 @@ import {
 export default function ForecastChart({ history }) {
   if (!history || history.length === 0) {
     return (
-      <div className="card chart-placeholder">
-        <p>Submit a reading to see the forecast chart.</p>
+      <div className="card" style={{ minHeight: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--text-muted)' }}>Awaiting readings to display forecast graph.</p>
       </div>
     );
   }
 
-  // Recharts Area uses [q05, q95] as a stacked band via "base" trick
-  // We encode the band as: base = q05, band = q95 - q05
+  // Convert histories into stacked chart ranges
   const chartData = history.map(d => ({
     label: d.label,
     actual:       d.actual,
@@ -34,75 +33,89 @@ export default function ForecastChart({ history }) {
   const anomalyLabels = chartData.filter(d => d.anomaly).map(d => d.label);
 
   return (
-    <div className="card chart-card">
-      <h2 className="card-title">Forecast vs. Actual</h2>
-      <ResponsiveContainer width="100%" height={320}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-          <YAxis unit=" kWh" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-          <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8 }}
-            labelStyle={{ color: '#94a3b8' }}
-            itemStyle={{ color: '#e2e8f0' }}
-            formatter={(v, name) => [v != null ? v.toFixed(3) + ' kWh' : '—', name]}
-          />
-          <Legend wrapperStyle={{ fontSize: 12, color: '#94a3b8' }} />
-
-          {/* Confidence interval band */}
-          <Area
-            type="monotone"
-            dataKey="ci_lower"
-            stroke="none"
-            fill="transparent"
-            name="CI Lower"
-            legendType="none"
-          />
-          <Area
-            type="monotone"
-            dataKey="ci_band"
-            stackId="ci"
-            stroke="none"
-            fill="#3b82f6"
-            fillOpacity={0.15}
-            name="90% Confidence Band"
-          />
-
-          {/* Actual consumption */}
-          <Area
-            type="monotone"
-            dataKey="actual"
-            stroke="#38bdf8"
-            strokeWidth={2}
-            fill="none"
-            dot={false}
-            name="Actual (kWh)"
-          />
-
-          {/* Forecast */}
-          <Area
-            type="monotone"
-            dataKey="forecast"
-            stroke="#a78bfa"
-            strokeWidth={2}
-            strokeDasharray="5 4"
-            fill="none"
-            dot={false}
-            name="Forecast (kWh)"
-          />
-
-          {/* Anomaly markers */}
-          {anomalyLabels.map(label => (
-            <ReferenceLine
-              key={label}
-              x={label}
-              stroke="#ef4444"
-              strokeDasharray="4 2"
-              label={{ value: '⚠', position: 'top', fill: '#ef4444', fontSize: 12 }}
+    <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 className="card-title" style={{ margin: 0, borderBottom: 'none', paddingBottom: 0 }}>
+          Load Forecast & Confidence Interval
+        </h2>
+        <span className="badge" style={{ fontSize: '11px' }}>Horizon: 24h</span>
+      </div>
+      
+      <div style={{ height: '360px', width: '100%', minHeight: '360px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.4} />
+            <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8e95a5' }} stroke="#202226" />
+            <YAxis unit=" kWh" tick={{ fontSize: 11, fill: '#8e95a5' }} stroke="#202226" />
+            <Tooltip
+              contentStyle={{ background: '#141619', border: '1px solid #202226', borderRadius: 4 }}
+              labelStyle={{ color: '#8e95a5', fontWeight: 600, fontSize: '11px' }}
+              itemStyle={{ color: '#ebedf0', fontSize: '12px', padding: '3px 0' }}
+              formatter={(v, name) => [v != null ? v.toFixed(3) + ' kWh' : '—', name]}
             />
-          ))}
-        </AreaChart>
-      </ResponsiveContainer>
+            <Legend verticalAlign="top" align="right" height={32} wrapperStyle={{ fontSize: 11, paddingBottom: '12px' }} />
+
+            {/* Confidence interval band */}
+            <Area
+              type="monotone"
+              dataKey="ci_lower"
+              stroke="none"
+              fill="transparent"
+              name="CI Lower"
+              legendType="none"
+              animationDuration={500}
+            />
+            <Area
+              type="monotone"
+              dataKey="ci_band"
+              stackId="ci"
+              stroke="none"
+              fill="rgba(87, 148, 242, 0.15)"
+              fillOpacity={1}
+              name="90% Confidence Interval"
+              animationDuration={500}
+            />
+
+            {/* Actual consumption (Blue) */}
+            <Area
+              type="monotone"
+              dataKey="actual"
+              stroke="#5794f2"
+              strokeWidth={2.5}
+              fill="none"
+              dot={{ r: 3, stroke: '#5794f2', strokeWidth: 1.5, fill: '#141619' }}
+              activeDot={{ r: 5, fill: '#5794f2', stroke: '#141619', strokeWidth: 1.5 }}
+              name="Actual Consumption"
+              animationDuration={500}
+            />
+
+            {/* Forecast (Purple) */}
+            <Area
+              type="monotone"
+              dataKey="forecast"
+              stroke="#b877db"
+              strokeWidth={2.5}
+              strokeDasharray="4 3"
+              fill="none"
+              dot={false}
+              name="Forecast"
+              animationDuration={500}
+            />
+
+            {/* Anomaly markers */}
+            {anomalyLabels.map(label => (
+              <ReferenceLine
+                key={label}
+                x={label}
+                stroke="var(--color-alert)"
+                strokeDasharray="3 3"
+                strokeWidth={1}
+                label={{ value: '⚠', position: 'top', fill: 'var(--color-alert)', fontSize: 11, fontWeight: 700 }}
+              />
+            ))}
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 
     with open(os.path.join(ARTIFACTS_DIR, 'metadata.json'), 'r') as f:
         meta = json.load(f)
-        anomaly_config = meta.get('anomaly_detection', {})
+        anomaly_config = meta.get('anomaly_config', {})
     set_state('anomaly_config', anomaly_config)
     
     with open(os.path.join(SCALERS_DIR, 'anomaly_feature_columns.json'), 'r') as f:

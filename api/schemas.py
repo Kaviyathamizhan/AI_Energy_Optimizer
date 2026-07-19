@@ -16,6 +16,16 @@ class Reading(BaseModel):
         description="If true, run LP optimization"
     )
 
+    @field_validator('datetime')
+    @classmethod
+    def datetime_must_be_iso(cls, v):
+        from datetime import datetime
+        try:
+            datetime.fromisoformat(v)
+        except ValueError:
+            raise ValueError("datetime must be a valid ISO-8601 format string")
+        return v
+
     @field_validator('consumption')
     @classmethod
     def consumption_must_be_finite(cls, v):

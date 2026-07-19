@@ -10,8 +10,8 @@ import {
 export default function OptimizationPanel({ optimization }) {
   if (!optimization) {
     return (
-      <div className="card opt-placeholder">
-        <p>Enable "Run Optimizer" to calculate 48-hour shifting constraints.</p>
+      <div className="card" style={{ minHeight: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--text-muted)' }}>Enable "Run LP cost optimizer" to calculate shifting curves.</p>
       </div>
     );
   }
@@ -31,69 +31,94 @@ export default function OptimizationPanel({ optimization }) {
   }
 
   return (
-    <div className="card opt-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 className="card-title" style={{ margin: 0 }}>LP Cost Optimization</h2>
-        <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', borderRadius: '4px', background: '#334155', color: '#cbd5e1' }}>
-          Horizon: 48 Hours
-        </span>
+    <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 className="card-title" style={{ margin: 0, borderBottom: 'none', paddingBottom: 0 }}>Cost Optimization</h2>
+        <span className="badge" style={{ fontSize: '11px' }}>Horizon: 48h</span>
       </div>
 
-      <div className="opt-summary" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-        <div className="opt-stat">
-          <span className="opt-label">Base Cost</span>
-          <strong className="opt-value orange">Rs. {original_cost?.toFixed(2)}</strong>
+      {/* Prominent cost details grid with Hero Estimated Savings */}
+      <div className="opt-stats-grid" style={{ gap: '14px', marginBottom: '16px', paddingBottom: '14px' }}>
+        <div className="opt-metric">
+          <span className="opt-metric-label" style={{ textTransform: 'none', fontSize: '11px', color: 'var(--text-muted)' }}>Original Cost</span>
+          <strong className="opt-metric-value mono-val" style={{ color: 'var(--text)', fontSize: '14px' }}>
+            Rs. {original_cost?.toFixed(2)}
+          </strong>
         </div>
-        <div className="opt-stat">
-          <span className="opt-label">Optimized</span>
-          <strong className="opt-value green">Rs. {optimized_cost?.toFixed(2)}</strong>
+        <div className="opt-metric">
+          <span className="opt-metric-label" style={{ textTransform: 'none', fontSize: '11px', color: 'var(--text-muted)' }}>Optimized Cost</span>
+          <strong className="opt-metric-value mono-val" style={{ color: 'var(--color-normal)', fontSize: '14px' }}>
+            Rs. {optimized_cost?.toFixed(2)}
+          </strong>
         </div>
-        <div className="opt-stat">
-          <span className="opt-label">48h Savings</span>
-          <strong className="opt-value blue">Rs. {savings?.toFixed(2)}</strong>
+        <div className="opt-metric" style={{ background: 'rgba(86, 166, 75, 0.08)', padding: '6px 10px', borderRadius: 'var(--radius)', border: '1px solid rgba(86, 166, 75, 0.2)' }}>
+          <span className="opt-metric-label" style={{ textTransform: 'none', fontSize: '11px', color: '#73bf69', fontWeight: 600 }}>Estimated Savings (48 Hours)</span>
+          <strong className="opt-metric-value mono-val" style={{ color: '#73bf69', fontSize: '18px', fontWeight: 700 }}>
+            Rs. {savings?.toFixed(2)}
+          </strong>
         </div>
-        <div className="opt-stat" style={{ borderLeft: '1px solid #334155', paddingLeft: '12px' }}>
-          <span className="opt-label">Monthly Impact</span>
-          <strong className="opt-value" style={{ color: '#e2e8f0' }}>
-            ~Rs. {((savings / 2) * 30).toFixed(0)}
+        <div className="opt-metric" style={{ borderLeft: '1px solid var(--border)', paddingLeft: '12px' }}>
+          <span className="opt-metric-label" style={{ textTransform: 'none', fontSize: '11px', color: 'var(--text-muted)' }}>Estimated Monthly Savings</span>
+          <strong className="opt-metric-value mono-val" style={{ color: 'var(--color-savings)', fontSize: '15px' }}>
+            Rs. {((savings / 2) * 30).toFixed(0)}
           </strong>
         </div>
       </div>
 
       {chartData.length > 0 && (
-        <div style={{ marginTop: '24px' }}>
-          <h3 style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '12px' }}>Before vs After Load Profile (48h)</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorOrig" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.6}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorOpt" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.6}/>
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="hour" tick={{ fill: '#64748b', fontSize: 11 }} />
-              <YAxis unit=" kWh" tick={{ fill: '#64748b', fontSize: 11 }} />
-              <Tooltip 
-                contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: '0.8rem' }}
-              />
-              <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '0.85rem' }}/>
-              <Area type="monotone" dataKey="OriginalLoad" stroke="#f59e0b" fillOpacity={1} fill="url(#colorOrig)" />
-              <Area type="monotone" dataKey="OptimizedLoad" stroke="#22c55e" fillOpacity={1} fill="url(#colorOpt)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+          <div style={{ height: '320px', width: '100%', minHeight: '320px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorOrig" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8e95a5" stopOpacity={0.06}/>
+                    <stop offset="95%" stopColor="#8e95a5" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorOpt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ff780a" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="#ff780a" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.4} />
+                <XAxis dataKey="hour" tick={{ fill: '#8e95a5', fontSize: 11 }} stroke="#202226" />
+                <YAxis unit=" kWh" tick={{ fill: '#8e95a5', fontSize: 11 }} stroke="#202226" />
+                <Tooltip 
+                  contentStyle={{ background: '#141619', border: '1px solid #202226', borderRadius: 4, fontSize: '12px' }}
+                  formatter={(value) => [`${value.toFixed(3)} kWh`]}
+                />
+                <Legend verticalAlign="top" align="right" height={32} wrapperStyle={{ fontSize: 11, paddingBottom: '12px' }}/>
+                <Area 
+                  type="monotone" 
+                  dataKey="OriginalLoad" 
+                  stroke="#8e95a5" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorOrig)" 
+                  name="Original Load"
+                  animationDuration={500}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="OptimizedLoad" 
+                  stroke="#ff780a" 
+                  strokeWidth={2.5}
+                  fillOpacity={1} 
+                  fill="url(#colorOpt)" 
+                  name="Optimized Load"
+                  animationDuration={500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
       {savings > 0 && (
-        <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px' }}>
-          <strong style={{ display: 'block', fontSize: '0.85rem', color: '#60a5fa', marginBottom: '4px' }}>Suggested Action</strong>
-          <span style={{ fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.4 }}>
-            Shift flexible usage (up to 20%) from peak tariff hours (16:00-21:00) backward into standard or off-peak hours to match the optimized load curve mapped above.
+        <div className="action-box" style={{ marginTop: '16px', padding: '12px 14px' }}>
+          <div className="action-box-icon" style={{ fontSize: '14px' }}>ℹ</div>
+          <span className="action-box-text" style={{ fontSize: '12px', lineHeight: 1.4 }}>
+            <strong>Suggested Action:</strong> Shift flexible equipment usage outside peak tariff hours (16:00–21:00) whenever operationally feasible to reduce electricity cost.
           </span>
         </div>
       )}

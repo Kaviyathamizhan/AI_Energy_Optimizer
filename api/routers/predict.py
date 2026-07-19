@@ -8,36 +8,47 @@ router = APIRouter()
 @router.post("/predict")
 async def predict_only(request: Reading, state: dict = Depends(get_state)):
     """
-    Returns only the forecast + confidence interval.
+    Returns unified forecast, anomaly, optimization, and metadata response.
     """
-    forecast_result = await run_predict(request, state)
-    
-    # Update buffer after forecast
-    update_buffer(request, state)
-    
-    return forecast_result
-
-@router.post("/predict_full")
-async def predict_full(request: Reading, state: dict = Depends(get_state)):
-    """
-    Wrapper endpoint that orchestrates calls to predict, anomaly, and optimize.
-    """
-    # 1. Anomaly detection (before mutating buffer)
     anomaly_result = await run_anomaly(request, state)
-    
-    # 2. Forecast
     forecast_result = await run_predict(request, state)
-    
-    # 3. Update buffer for subsequent calls
     update_buffer(request, state)
     
-    # 4. LP Optimization if requested
     optimize_result = None
     if request.run_optimizer:
         optimize_result = await run_optimize(forecast_result, state)
         
     return {
         "forecast": forecast_result,
+        "confidence_interval": forecast_result.get("confidence_interval"),
         "anomaly": anomaly_result,
-        "optimization": optimize_result
+        "optimization": optimize_result,
+        "metadata": {
+            "algorithm": "LightGBM",
+            "buffer_rows": len(state['buffer'])
+        }
+    }
+
+@router.post("/predict_full")
+async def predict_full(request: Reading, state: dict = Depends(get_state)):
+    """
+    Wrapper endpoint that orchestrates calls to predict, anomaly, and optimize.
+    """
+    anomaly_result = await run_anomaly(request, state)
+    forecast_result = await run_predict(request, state)
+    update_buffer(request, state)
+    
+    optimize_result = None
+    if request.run_optimizer:
+        optimize_result = await run_optimize(forecast_result, state)
+        
+    return {
+        "forecast": forecast_result,
+        "confidence_interval": forecast_result.get("confidence_interval"),
+        "anomaly": anomaly_result,
+        "optimization": optimize_result,
+        "metadata": {
+            "algorithm": "LightGBM",
+            "buffer_rows": len(state['buffer'])
+        }
     }
